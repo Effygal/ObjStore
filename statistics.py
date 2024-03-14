@@ -8,7 +8,7 @@ Description:
 
 - Result CSV files are saved under ./data.
 
-- If usable data is less than 2, the trace is considered bad, and no statistics will be saved.
+- If usable data is less than 5, the trace is considered bad, and no statistics will be saved.
 
 Usage:
 python3 statistics.py "IBMObjectStoreTrace000Part0"
@@ -84,18 +84,17 @@ def save_statistics(input_file):
     trace_write = trace[trace[:, 1] == 'REST.PUT.OBJECT']
     trace_write_iat = iat(trace_write)
     trace_read_iat = iat(trace_read)
-    print("Re-read entries ", len(trace_read_iat))
-    print("Re-write entries ", len(trace_write_iat))
-    if len(trace_read_iat) <= 2 or len(trace_write_iat) <= 2:
-        print("Bad trace: Not enough data for statistics.")
-        return
     trace_read_iat = np.array([x for x in trace_read_iat if x != -1])
     trace_write_iat = np.array([x for x in trace_write_iat if x != -1])
     raw = read_after_write_dist(trace)
-    print("Total read after write entries: ", len(raw))
-    if len(raw) <= 2:
+    
+    print("Re-read entries: ", len(trace_read_iat))
+    print("Re-write entries: ", len(trace_write_iat))
+    print("Read after write entries: ", len(raw))
+    if len(trace_read_iat) <= 5 or len(trace_write_iat) <= 5 or len(raw) <= 5:
         print("Bad trace: Not enough data for statistics.")
         return
+    
     xr, yr = cdf(trace_read_iat)
     xw, yw = cdf(trace_write_iat)
     rawx, rawy = cdf(raw)
