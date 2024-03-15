@@ -8,7 +8,7 @@ Description:
 
 - Result CSV files are saved under ./data.
 
-- If usable data is less than 5, the trace is considered bad, and no statistics will be saved.
+- If usable data entries are less than 5, no statistics will be saved.
 
 Usage:
 python3 statistics.py "IBMObjectStoreTrace000Part0"
@@ -88,25 +88,25 @@ def save_statistics(input_file):
     trace_write_iat = np.array([x for x in trace_write_iat if x != -1])
     raw = read_after_write_dist(trace)
     
-    print("Re-read entries: ", len(trace_read_iat))
-    print("Re-write entries: ", len(trace_write_iat))
-    print("Read after write entries: ", len(raw))
-    if len(trace_read_iat) <= 5 or len(trace_write_iat) <= 5 or len(raw) <= 5:
-        print("Bad trace: Not enough data for statistics.")
-        return
-    
     xr, yr = cdf(trace_read_iat)
     xw, yw = cdf(trace_write_iat)
     rawx, rawy = cdf(raw)
+    
     data_dir = './data'
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
+    
+    if len(trace_read_iat) > 5:
+        np.savetxt(os.path.join(data_dir, file_name + '_read_iat_cdf.csv'), np.column_stack((xr, yr)), delimiter=',', comments='')
+    if len(trace_write_iat) > 5:
+        np.savetxt(os.path.join(data_dir, file_name + '_write_iat_cdf.csv'), np.column_stack((xw, yw)), delimiter=',', comments='')
+    if len(raw) > 5:
+        np.savetxt(os.path.join(data_dir, file_name + '_raw_cdf.csv'), np.column_stack((rawx, rawy)), delimiter=',', comments='')
 
-    np.savetxt(os.path.join(data_dir, file_name + '_read_iat_cdf.csv'), np.array([xr, yr]).T, delimiter=',', comments='')
-    np.savetxt(os.path.join(data_dir, file_name + '_write_iat_cdf.csv'), np.array([xw, yw]).T, delimiter=',', comments='')
-    np.savetxt(os.path.join(data_dir, file_name + '_raw_cdf.csv'), np.array([rawx, rawy]).T, delimiter=',', comments='')
 
 if __name__ == '__main__':
     input_file = sys.argv[1]
+    print("Processing file: ", input_file)
     save_statistics(input_file)
+    print("File: ", input_file, " saved.")
     
